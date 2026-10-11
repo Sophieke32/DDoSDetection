@@ -27,8 +27,9 @@ class Net:
     # Starts the net with the given topo and enables STP for all the switches
     def start_net(self):
         topo = CustomTopology()
-        self.net = Mininet(topo=topo, controller=lambda name: RemoteController(name, ip=self.controller_ip,
-                                                                               port=self.controller_port))
+        self.net = Mininet(topo=topo)
+        # self.net = Mininet(topo=topo, controller=lambda name: RemoteController(name, ip=self.controller_ip,
+        #                                                                        port=self.controller_port))
         self.net.start()
         for i in range(1, 4):
             s = self.net.get(f's{i}')

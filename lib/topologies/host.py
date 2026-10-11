@@ -1,18 +1,22 @@
 from lib.topologies.node import Node
-from lib.topologies.topology import Topology
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from topology import Topology
 
 class Host(Node):
     def __init__(self, topology: Topology, name=None):
         super().__init__()
         self.topology = topology
+        self.topology.counters["hosts"] += 1
+
         if name is None:
             name = self.generate_name()
         self.name = name
 
 
     def generate_name(self):
-        return "host " + self.topology.counters["hosts"]
+        return "host" + str(self.topology.counters["hosts"])
 
-    def create(self):
+    def build(self):
         self.mn_representation = self.topology.addHost(self.name, protocols='OpenFlow13')

@@ -9,11 +9,11 @@ class Node(ABC):
         self.ip = '192.168.1.26'
         self.mac = "AA:AA:AA:AA:AA"
         self.connections = []
-        self.name = self.generate_name()
+        self.name = None
         self.mn_representation = None
 
     @abstractmethod
-    def create(self):
+    def build(self):
         pass
 
     @abstractmethod

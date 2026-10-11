@@ -1,17 +1,25 @@
 from lib.topologies.node import Node
-from lib.topologies.topology import Topology
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from topology import Topology
 
 class Switch(Node):
+    topology = None
+    name = None
+
     def __init__(self, topology: Topology, name=None):
         super().__init__()
         self.topology = topology
+        topology.counters["switches"] += 1
+
         if name is None:
             name = self.generate_name()
         self.name = name
 
     def generate_name(self):
-        return "switch " + self.topology.counters["switches"]
+        return "switch" + str(self.topology.counters["switches"])
 
-    def create(self):
+    def build(self):
         self.mn_representation = self.topology.addSwitch(self.name, protocols='OpenFlow13')
 
