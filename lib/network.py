@@ -1,11 +1,15 @@
+from mininet.node import OVSSwitch
+
 from lib.topologies.topology import Topology
 from mininet.net import Mininet
 from mininet.util import dumpNodeConnections
 from mininet.log import info
+from mininet.cli import CLI
 from subprocess import Popen
 
 class Network:
     topology = None
+    controller = None
 
     def __init__(self, topology: Topology):
         self.tmp = 'tmp.txt'
@@ -13,6 +17,7 @@ class Network:
         self.controller_ip = '192.168.1.26'
         self.controller_port = 6633
         self.topology = topology
+        self.controller = None
 
     # Clears everything going on the network
     def clear_net(self):
@@ -22,16 +27,22 @@ class Network:
 
 
     def start_net(self):
-        info('### Starting net... ###')
+        info('\n### Network initialisation ###\n\n')
         self.topology.build()
-        net = Mininet(self.topology, controller=None)
+        net = Mininet(
+            self.topology,
+            controller=self.controller,
+            switch=OVSSwitch,
+            build=False
+        )
         net.start()
 
-        info('Dumping host connections')
+        info('\n### Host connections ###\n')
         dumpNodeConnections(net.hosts)
 
-        info('### Network is built, testing connectivity... ###')
+        info('\n### Network is built, testing connectivity... ###\n')
         net.pingAll()
+        # CLI(net)
         net.stop()
 
 
