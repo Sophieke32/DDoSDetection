@@ -3,6 +3,7 @@ from lib.topologies.node import Node
 from lib.topologies.host import Host
 from lib.topologies.link import Link
 from lib.topologies.switch import Switch
+from mininet.log import info
 
 class Topology(Topo):
     host_objects: list[Host] = []
@@ -12,12 +13,11 @@ class Topology(Topo):
 
     def __init__(self, *args, **params):
         super().__init__(*args, **params)
-        # self.host_objects: list[Host] = []
-        # self.switch_objects: list[Switch] = []
-        # self.link_objects: list[Link] = []
-        # self.counters = {"hosts": 0, "switches": 0, "links": 0}
 
     def build(self):
+        info(f"### Building network with {self.counters['hosts'] + self.counters['switches']} nodes"
+             f" and {self.counters['links']} links\n")
+
         for i in self.__get_nodes__():
             i.build()
 

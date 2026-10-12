@@ -8,7 +8,7 @@ class Switch(Node):
     topology = None
     name = None
 
-    def __init__(self, topology: Topology, name=None):
+    def __init__(self, topology: Topology, name=None, ip=None):
         super().__init__()
         self.topology = topology
         topology.counters["switches"] += 1
@@ -16,6 +16,9 @@ class Switch(Node):
         if name is None:
             name = self.generate_name()
         self.name = name
+
+        if ip is not None:
+            self.ip = ip
 
     def generate_name(self):
         return "switch" + str(self.topology.counters["switches"])
