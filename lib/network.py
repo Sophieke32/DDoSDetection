@@ -1,5 +1,4 @@
-from mininet.node import OVSSwitch
-
+from mininet.node import OVSSwitch, RemoteController
 from lib.topologies.topology import Topology
 from mininet.net import Mininet
 from mininet.util import dumpNodeConnections
@@ -31,9 +30,15 @@ class Network:
         self.topology.build()
         net = Mininet(
             self.topology,
-            controller=self.controller,
+            controller=RemoteController,
             switch=OVSSwitch,
             build=False
+        )
+        net.addController(
+            'c0',
+            controller=RemoteController,
+            ip='127.0.0.1',
+            port=6633
         )
         net.start()
 
