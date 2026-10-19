@@ -5,10 +5,9 @@ if TYPE_CHECKING:
     from topology import Topology
 
 class Host(Node):
-    def __init__(self, topology: Topology, name=None, ip=None):
-        super().__init__()
+    def __init__(self, topology: Topology, name=None, ip=None, colour='#000000'):
+        super().__init__(colour=colour)
         self.topology = topology
-        self.topology.counters["hosts"] += 1
 
         if name is None:
             name = self.generate_name()
@@ -18,7 +17,7 @@ class Host(Node):
 
 
     def generate_name(self):
-        return "host" + str(self.topology.counters["hosts"])
+        return "h" + str(len(self.topology.get_host_objects()))
 
     def build(self):
         self.mn_representation = self.topology.addHost(self.name, protocols='OpenFlow13')

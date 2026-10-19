@@ -4,13 +4,14 @@ from lib.topologies.no_mn_representation_error import NoMNRepresentationError
 
 
 class Node(ABC):
-    def __init__(self):
+    def __init__(self, colour):
         self.data = {}
         self.ip = '192.168.1.26'
         self.mac = "AA:AA:AA:AA:AA"
         self.connections = []
         self.name = None
         self.mn_representation = None
+        self.colour = colour
 
     @abstractmethod
     def build(self):

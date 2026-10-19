@@ -20,9 +20,11 @@ def find_ip_addresses(row):
 
     return res
 
+
 def get_ip_addresses(row, indices, addresses):
     for i in indices:
         addresses.add(row[i])
+
 
 def pcap_to_network(path):
     hosts = {}
@@ -48,7 +50,7 @@ def pcap_to_network(path):
 
     for key, value in hosts.items():
         host = Host(topology, ip=key)
-        topology.add_host(host)
+        topology.add_internal_host(host) # NOTE: ALWAYS PUTS IT INTERNALLY
         topology.add_link(Link(topology, host, spider))
 
     return topology

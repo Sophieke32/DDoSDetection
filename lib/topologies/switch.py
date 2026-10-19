@@ -8,10 +8,9 @@ class Switch(Node):
     topology = None
     name = None
 
-    def __init__(self, topology: Topology, name=None, ip=None):
-        super().__init__()
+    def __init__(self, topology: Topology, name=None, ip=None, colour='#000000'):
+        super().__init__(colour=colour)
         self.topology = topology
-        topology.counters["switches"] += 1
 
         if name is None:
             name = self.generate_name()
@@ -21,7 +20,7 @@ class Switch(Node):
             self.ip = ip
 
     def generate_name(self):
-        return "switch" + str(self.topology.counters["switches"])
+        return "s" + str(len(self.topology.switch_objects))
 
     def build(self):
         self.mn_representation = self.topology.addSwitch(self.name, protocols='OpenFlow13')

@@ -7,7 +7,6 @@ if TYPE_CHECKING:
 class Link:
     def __init__(self, topology: Topology, src: Node, dst: Node):
         self.topology = topology
-        topology.counters["links"] += 1
 
         self.src = src
         self.dst = dst
