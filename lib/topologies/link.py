@@ -1,11 +1,12 @@
+from mininet.topo import Topo
 from lib.topologies.node import Node
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from topology import Topology
+    from many_endpoints_topology import ManyEndpointsTopology
 
 class Link:
-    def __init__(self, topology: Topology, src: Node, dst: Node):
+    def __init__(self, topology: Topo, src: Node, dst: Node):
         self.topology = topology
 
         self.src = src

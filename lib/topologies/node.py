@@ -8,7 +8,7 @@ class Node(ABC):
         self.data = {}
         self.ip = '192.168.1.26'
         self.mac = "AA:AA:AA:AA:AA"
-        self.connections = []
+        # self.connections = []
         self.name = None
         self.mn_representation = None
         self.colour = colour

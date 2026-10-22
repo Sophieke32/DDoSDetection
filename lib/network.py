@@ -17,6 +17,7 @@ class Network:
         self.controller_port = 6633
         self.topology = topology
         self.controller = None
+        self.net = None
 
     # Clears everything going on the network
     def clear_net(self):
@@ -48,7 +49,10 @@ class Network:
         info('\n### Network is built, testing connectivity... ###\n')
         net.pingAll()
         # CLI(net)
-        net.stop()
+
+    def stop_net(self):
+        self.net.stop()
+        self.clear_net()
 
 
 
