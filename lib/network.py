@@ -35,6 +35,7 @@ class Network:
             switch=OVSSwitch,
             build=False
         )
+        self.net = net
         net.addController(
             'c0',
             controller=RemoteController,

@@ -1,10 +1,10 @@
-from mininet.topo import Topo
+from mininet.log import warn, info
+import networkx as nx
+import matplotlib.pyplot as plt
+
 from lib.topologies.host import Host
 from lib.topologies.switch import Switch
-from lib.topologies.link import Link
-from mininet.log import info
-from lib.topologies.topology_visualisation import visualise_many_endpoints_topology
-
+from lib.topologies.topology import Topology
 
 """
 Topology where the internal network has many endpoints. Consists of a number of benign and
@@ -13,13 +13,10 @@ to the aggregator (a Host), and to a checker (a subtype of Host). The core check
 to the aggregator too, and optionally, the network may use intermediary checkers to connect 
 endpoints to the core checker.
 """
-class ManyEndpointsTopology(Topo):
+class ManyEndpointsTopology(Topology):
     endpoints: list[Switch] = []
     checkers: list[list[Host]] = []
-    aggregator = None
-    benign_hosts: list[Host] = []
-    malicious_hosts: list[Host] = []
-    link_objects: list[Link] = []
+    aggregator: None | Host = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -31,13 +28,13 @@ class ManyEndpointsTopology(Topo):
         for i in self.endpoints:
             i.build()
 
-        for i in self.get_checkers():
+        for i in self.get_all_checkers():
             i.build()
 
         print(self.aggregator)
         self.aggregator.build()
 
-        for i in self.get_external_hosts():
+        for i in self.get_external_nodes():
             i.build()
 
         for i in self.link_objects:
@@ -47,22 +44,20 @@ class ManyEndpointsTopology(Topo):
     def add_aggregator(self, aggregator: Host):
         if self.aggregator is not None:
             info("### Replacing existing aggregator with a new one ###")
+            self.remove_host(self.aggregator)
         self.aggregator = aggregator
+        self.internal_hosts.append(aggregator)
         return aggregator
 
     def add_checker(self, checker, layer):
         if len(self.checkers) < layer + 1:
             self.checkers.append([])
         self.checkers[layer].append(checker)
-        return checker
+        return self.add_internal_host(checker)
 
     def add_endpoint(self, endpoint):
         self.endpoints.append(endpoint)
-        return endpoint
-
-    def add_link(self, link):
-        self.link_objects.append(link)
-        return link
+        return self.add_switch(endpoint)
 
     def number_of_checkers(self):
         res = 0
@@ -70,29 +65,45 @@ class ManyEndpointsTopology(Topo):
             res += len(i)
         return res
 
-    def get_checkers(self):
+    def get_all_checkers(self):
         res = []
         for i in self.checkers:
             for j in i:
                 res.append(j)
         return res
 
-    def get_external_hosts(self):
-        return self.benign_hosts + self.malicious_hosts
-
-    def get_all_hosts(self):
-        return self.get_checkers() + self.get_external_hosts() + [self.aggregator]
-
-    def get_all_switches(self):
+    def get_endpoints(self):
         return self.endpoints
 
-    def add_malicious_host(self, host):
-        self.malicious_hosts.append(host)
-        return host
-
-    def add_benign_host(self, host):
-        self.benign_hosts.append(host)
-        return host
+    def get_aggregator(self):
+        return self.aggregator
 
     def visualise(self):
-        visualise_many_endpoints_topology(self)
+        g = nx.Graph()
+
+        for endpoint in self.get_endpoints():
+            g.add_node(endpoint.name, colour=endpoint.colour, layer=1)
+
+        for layer, checkers in enumerate(self.checkers):
+            for checker in checkers:
+                g.add_node(checker.name, colour=checker.colour, layer=(len(self.checkers) - layer) + 2)
+
+        top_layer = len(self.get_all_checkers()) + 2
+        g.add_node(self.get_aggregator().name, colour=self.get_aggregator().colour, layer=top_layer)
+
+        for host in self.get_external_nodes():
+            g.add_node(host.name, colour=host.colour, layer=0)
+
+        for link in self.get_all_links():
+            g.add_edge(link.src.name, link.dst.name)
+
+        s = [n for n, data in g.nodes(data=True) if "layer" not in data]
+        if s:
+            warn("!!! Something went wrong: a host or switch was not included in the ManyEndpointsTopology"
+                 " object, but was included in one of its switches !!!")
+
+        pos = nx.multipartite_layout(g, subset_key="layer", align="horizontal")
+
+        colours = [g.nodes[n]["colour"] for n in g.nodes]
+        nx.draw(g, pos, with_labels=True, node_color=colours)
+        plt.show()

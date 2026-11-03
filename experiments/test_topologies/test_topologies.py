@@ -7,16 +7,22 @@ from lib.topologies.network_error import NetworkError
 from mininet.log import warn
 
 
-# def get_single_switch_topology(n):
-#     """Single switch, n hosts"""
-#     topology = Topology()
-#     switch = topology.add_switch(Switch(topology))
-#
-#     for i in range(n):
-#         host = topology.add_internal_host(Host(topology))
-#         topology.add_link(Link(topology, switch, host))
-#
-#     return topology
+def build_external_network(benign, malicious, topology, benign_colour, malicious_colour, endpoints):
+    number_of_malicious_nodes = malicious()
+    number_of_benign_nodes = benign()
+
+    if number_of_malicious_nodes + number_of_benign_nodes == 0:
+        warn("!!! Creating topology without an external network !!!")
+
+    for i in range(number_of_malicious_nodes):
+        host = topology.add_malicious_host(Host(topology, "m" + str(i), colour=malicious_colour))
+        for endpoint in endpoints:
+            topology.add_link(Link(topology, host, endpoint))
+
+    for i in range(number_of_benign_nodes):
+        host = topology.add_benign_host(Host(topology, "b" + str(i), colour=benign_colour))
+        for endpoint in endpoints:
+            topology.add_link(Link(topology, host, endpoint))
 
 
 """
@@ -156,20 +162,105 @@ def get_distributed_topology(net_shape: list, malicious, benign):
         warn("!!! Creating topology without an internal network !!!")
 
     # Create the external network of the topology
-    number_of_malicious_nodes = malicious()
-    number_of_benign_nodes = benign()
-
-    if number_of_malicious_nodes + number_of_benign_nodes == 0:
-        warn("!!! Creating topology without an external network !!!")
-
-    for i in range(number_of_malicious_nodes):
-        host = topology.add_malicious_host(Host(topology, "m" + str(i), colour='#F55B27')) # Malicious is red
-        for endpoint in topology.endpoints:
-            topology.add_link(Link(topology, host, endpoint))
-
-    for i in range(number_of_benign_nodes):
-        host = topology.add_benign_host(Host(topology, "b" + str(i), colour="#07D962")) # Benign is green
-        for endpoint in topology.endpoints:
-            topology.add_link(Link(topology, host, endpoint))
+    build_external_network(benign, malicious, topology, '#07D962', '#F55B27', topology.get_endpoints())
 
     return topology
+
+
+"""
+Functions for the Arish Topology
+"""
+
+"""
+Create the intermediary checkers. Tree-shape is a list of functions that return a number, layer denotes
+the layer in the network (edge-router is layer 0). Used for graphing the network.
+
+Recursively builds the checkers by repeatedly taking the next element in tree_shape, and creating that many
+checkers in the next layer, per checker in the last layer. When tree_shape is empty, it creates the endpoints.
+
+"""
+def create_funnel_checkers(tree_shape: list, parent, topology, layer):
+    if len(tree_shape) == 0:
+        return
+
+    temp = tree_shape[0]()
+    for i in range(temp):
+        print("Adding a checker on layer:", layer)
+        checker = topology.add_checker(Checker(topology, colour="#FAC72F"), layer) # Internal checkers are yellow
+        topology.add_link(Link(topology, checker, parent))
+        create_funnel_checkers(tree_shape[1:], checker, topology, layer + 1)
+
+"""
+Creates n+1 endpoints for the funnel network, where n is the number of core routers on the top layer
+(furthest away from the edge router into the internal network). Each endpoint is connected to the two
+nearest indexed core routers, except for the first and last endpoint, which are connected only to the outer routers. 
+"""
+def create_funnel_endpoints(topology: ManyEndpointsTopology):
+    connections = 2 # Each endpoint is connected with two switches (except the first and the last, which have only 1 connection)
+    core_routers = topology.checkers[-1]
+
+    # Edge case handling
+    if len(core_routers) < 1:
+        raise NetworkError("Cannot make empty funnel network!")
+    if len(core_routers) == 1:
+        switch = topology.add_endpoint(Switch(topology, colour='#27ADF5')) # Endpoints are blue
+        topology.add_link(Link(topology, switch, core_routers[0]))
+        topology.add_link(Link(topology, switch, topology.get_aggregator()))
+        return
+
+
+    for i in range(len(core_routers) + 1):
+        switch = topology.add_endpoint(Switch(topology, colour='#27ADF5')) # Endpoints are blue
+        topology.add_link(Link(topology, switch, topology.get_aggregator()))
+
+    topology.add_link(Link(topology, topology.get_endpoints()[0], core_routers[0]))
+    topology.add_link(Link(topology, topology.get_endpoints()[-1], core_routers[-1]))
+
+    for i in range(1, len(topology.get_endpoints()) - 1):   # For each endpoint that isnt the first or last
+        topology.add_link(Link(topology, topology.get_endpoints()[i], core_routers[i-1]))
+        topology.add_link(Link(topology, topology.get_endpoints()[i], core_routers[i]))
+
+"""
+Creates a funnel network according to the net_shape, as well as malicious() and benign() external nodes.
+malicious and benign are both expected to be lambdas that return a number.
+net_shape is expected to be a list of such lambdas. 
+
+Funnel network contains an edge router (which stands in front of the internal network) and an aggregator (which
+performs data aggregation for the DDoS detection mechanism). From the edge router we build n layers of core routers, 
+where n is the length of of net_shape. Each index of net_shape creates a new layer of core routers with 
+net_shape[i]() core routers attached to its parent. For example:
+
+get_entry_funnel_topology([lambda : 2, lambda : 3], lambda x : 2, lambda : 3) creates a network with:
+- One edge router
+- One aggregator
+- Two core routers in the first layer, both connected to the edge router
+- 6 (2 * 3) core routers in the second layer. Three of these are connected to the first router in layer 1, three
+    are connected to the second router in layer 1. 
+- 7 endpoints (border routers). The first and last are connected to the first and last core router on layer 2 respectively.
+    Each other endpoint is connected to two routers on layer 2.
+- 2 malicious and 3 benign external nodes, each connected to every endpoint. These represent "the internet".
+- The aggregator is also connected to each endpoint. 
+"""
+def get_entry_funnel_topology(net_shape, malicious, benign):
+    if (len(net_shape) <= 0):
+        raise NetworkError("Cannot make empty funnel network!")
+
+    topology = ManyEndpointsTopology()
+    core_checker = topology.add_checker(Checker(topology, colour='#000000', name="cc0"), 0)  # core checker is black
+    aggregator = topology.add_aggregator(Host(topology, colour='#000fff', name="agg0"))  # aggregator is grey
+    topology.add_link(Link(topology, aggregator, core_checker))
+
+    number_of_checkers = topology.number_of_checkers()
+
+    # Create the internal network
+    create_funnel_checkers(net_shape, core_checker, topology, 1)
+    create_funnel_endpoints(topology)
+
+    if number_of_checkers == topology.number_of_checkers():
+        warn("!!! Creating topology without an internal network !!!")
+
+    # Create the external network of the topology
+    build_external_network(benign, malicious, topology, '#07D962', '#F55B27', topology.get_endpoints())
+
+    return topology
+

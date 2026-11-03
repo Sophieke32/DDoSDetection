@@ -19,21 +19,25 @@ if __name__ == '__main__':
     #     lambda : random.randint(2, 3),  # Somewhere between 2 and 3 benign nodes
     # ))
 
-    network = Network(test_topologies.get_distributed_topology(
-        [               # 1 central checker
-            lambda: 4,            # 4 checkers below the central checker
-            lambda: 2,            # which in turn each have 2 checkers below them
-            lambda: 2,            # which in turn each have 2 checkers below them
-            lambda: 3             # which in turn each have 2 endpoints below them
-        ],
-        lambda : random.randint(3, 5),  # Somewhere between 3 and 5 malicious nodes
-        lambda : random.randint(2, 4),  # Somewhere between 2 and 4 benign nodes
+    # network = Network(test_topologies.get_distributed_topology(
+    #     [               # 1 central checker
+    #         lambda: 4,            # 4 checkers below the central checker
+    #         lambda: 2,            # which in turn each have 2 checkers below them
+    #         lambda: 2,            # which in turn each have 2 checkers below them
+    #         lambda: 3             # which in turn each have 2 endpoints below them
+    #     ],
+    #     lambda : random.randint(3, 5),  # Somewhere between 3 and 5 malicious nodes
+    #     lambda : random.randint(2, 4),  # Somewhere between 2 and 4 benign nodes
+    # ))
+
+    network = Network(test_topologies.get_entry_funnel_topology(
+        [lambda : 2, lambda : 3], lambda : 2, lambda : 3
     ))
 
     network.topology.visualise()
 
     network.start_net()
 
-    perform_dumb_attack(network)
+    # perform_dumb_attack(network)
 
     network.stop_net()
