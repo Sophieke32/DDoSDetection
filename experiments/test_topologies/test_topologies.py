@@ -149,7 +149,7 @@ def get_distributed_topology(net_shape: list, malicious, benign):
         raise NetworkError("Cannot make empty internal network!")
 
     topology = ManyEndpointsTopology()
-    core_checker = topology.add_checker(Checker(topology, colour='#000000', name="cc0"), 0) # core checker is black
+    core_checker = topology.add_checker(Checker(topology, colour='#f0f0f0', name="cc0"), 0) # core checker is black
     aggregator = topology.add_aggregator(Host(topology, colour='#000fff', name="agg0")) # aggregator is grey
     topology.add_link(Link(topology, aggregator, core_checker))
 
@@ -242,12 +242,12 @@ get_entry_funnel_topology([lambda : 2, lambda : 3], lambda x : 2, lambda : 3) cr
 - The aggregator is also connected to each endpoint. 
 """
 def get_entry_funnel_topology(net_shape, malicious, benign):
-    if (len(net_shape) <= 0):
+    if len(net_shape) <= 0:
         raise NetworkError("Cannot make empty funnel network!")
 
     topology = ManyEndpointsTopology()
-    core_checker = topology.add_checker(Checker(topology, colour='#000000', name="cc0"), 0)  # core checker is black
-    aggregator = topology.add_aggregator(Host(topology, colour='#000fff', name="agg0"))  # aggregator is grey
+    core_checker = topology.add_checker(Checker(topology, colour='#f4f4f4', name="cc0"), 0)  # core checker is grey
+    aggregator = topology.add_aggregator(Host(topology, colour='#000fff', name="agg0"))  # aggregator is blue
     topology.add_link(Link(topology, aggregator, core_checker))
 
     number_of_checkers = topology.number_of_checkers()
