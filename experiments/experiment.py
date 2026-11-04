@@ -1,8 +1,7 @@
 from mininet.log import setLogLevel
-from experiments.test_topologies import test_topologies
+from experiments import test_topologies
 from lib.network import Network
 from lib.traffic_generator.dumb_attack import perform_dumb_attack
-import random
 
 if __name__ == '__main__':
     # Tell mininet to print useful information
