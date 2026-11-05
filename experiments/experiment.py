@@ -7,17 +7,19 @@ from lib.network import Network
 if __name__ == '__main__':
     # Tell mininet to print useful information
     setLogLevel('info')
-    # network = Network(pcap_to_network("../resources/pcaps/combined_Mirai_and_Benign_dataset_Full.csv"))
+
+    # Tree-topology
     # network = Network(test_topologies.get_tree_topology(
     #     [
     #         lambda : random.randint(2, 3),  # Core switch has 2-3 connections
     #         lambda : random.randint(1, 2),  # First layer switches have 1-2 connections
-    #         lambda : 3                            # 3 stations at the leaves of the network
+    #         lambda : 3                      # 3 stations at the leaves of the network
     #     ],
     #     lambda : random.randint(1, 2),  # Somewhere between 1 and 2 malicious nodes
     #     lambda : random.randint(2, 3),  # Somewhere between 2 and 3 benign nodes
     # ))
 
+    # Distributed-topology
     # network = Network(test_topologies.get_distributed_topology(
     #     [               # 1 central checker
     #         lambda: 4,            # 4 checkers below the central checker
@@ -29,6 +31,7 @@ if __name__ == '__main__':
     #     lambda : random.randint(2, 4),  # Somewhere between 2 and 4 benign nodes
     # ))
 
+    # Funnel-topology
     network = Network(test_topologies.get_entry_funnel_topology(
         [lambda : 2, lambda : 3], lambda : 2, lambda : 3
     ))
