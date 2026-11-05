@@ -12,7 +12,7 @@ class Checker(Host):
         super().__init__(topology, name=name, ip=ip, colour=colour)
 
         if children is not None:
-                children = children
+                self.children = children
 
     def add_child(self, child):
         self.children.append(child)

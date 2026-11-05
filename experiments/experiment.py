@@ -1,7 +1,6 @@
 from mininet.log import setLogLevel
 from experiments import test_topologies
 from lib.network import Network
-from lib.traffic_generator.dumb_attack import perform_dumb_attack
 
 if __name__ == '__main__':
     # Tell mininet to print useful information
@@ -36,7 +35,5 @@ if __name__ == '__main__':
     network.topology.visualise()
 
     network.start_net()
-
-    # perform_dumb_attack(network)
 
     network.stop_net()

@@ -1,4 +1,6 @@
 from mininet.topo import Topo
+
+from lib.topologies.connection import Connection
 from lib.topologies.node import Node
 from lib.topologies.host import Host
 from lib.topologies.link import Link
@@ -12,6 +14,7 @@ class Topology(Topo):
     malicious_hosts: list[Host] = []    # Holds all the external malicious hosts
     internal_hosts: list[Host] = []     # Holds all internal nodes in the network
     switch_objects: list[Switch] = []   # Holds all the switch objects in the network
+    connections: list[Connection] = []  # Used to connect two nodes
     link_objects: list[Link] = []       # Holds all the link objects in the network
 
     def __init__(self, *args, **params):
@@ -44,9 +47,23 @@ class Topology(Topo):
         self.switch_objects.append(switch)
         return switch
 
+    # Note: If you are trying to connect two hosts, use a Connection instead.
     def add_link(self, link):
         self.link_objects.append(link)
         return link
+
+    def add_connection(self, connection):
+        self.connections.append(connection)
+        self.switch_objects.append(connection.get_switch())
+        self.link_objects.append(connection.get_src_link())
+        self.link_objects.append(connection.get_dst_link())
+        return connection
+
+    def remove_connection(self, connection):
+        self.connections.remove(connection)
+        self.link_objects.remove(connection.get_src_link())
+        self.link_objects.remove(connection.get_dst_link())
+        self.switch_objects.remove(connection.get_switch())
 
     def remove_link(self, link):
         self.link_objects.remove(link)
@@ -83,6 +100,9 @@ class Topology(Topo):
 
     def get_all_links(self):
         return self.link_objects
+
+    def get_all_connections(self):
+        return self.connections
 
     """
     Creates a visualisation of the network using matplotlib. Useful for debugging. 

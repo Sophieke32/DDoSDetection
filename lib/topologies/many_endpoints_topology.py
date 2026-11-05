@@ -57,7 +57,7 @@ class ManyEndpointsTopology(Topology):
 
     def add_endpoint(self, endpoint):
         self.endpoints.append(endpoint)
-        return self.add_switch(endpoint)
+        return self.add_internal_host(endpoint)
 
     def number_of_checkers(self):
         res = 0
@@ -78,6 +78,12 @@ class ManyEndpointsTopology(Topology):
     def get_aggregator(self):
         return self.aggregator
 
+    """
+    Visualises the network as a graph using networkx
+    
+    Connections turn into a single black connection between the src and dst
+    Manually made links render as a red line, as a warning to the user not to connect two hosts using just a link.
+    """
     def visualise(self):
         g = nx.Graph()
 
@@ -94,16 +100,30 @@ class ManyEndpointsTopology(Topology):
         for host in self.get_external_nodes():
             g.add_node(host.name, colour=host.colour, layer=0)
 
-        for link in self.get_all_links():
-            g.add_edge(link.src.name, link.dst.name)
+        for connection in self.get_all_connections():
+            g.add_edge(connection.src.name, connection.dst.name, colour=connection.get_src_link().colour)
 
+        for link in self.get_all_links():
+            if not link.connection:
+                g.add_edge(link.src.name, link.dst.name, colour=link.colour)
+
+
+        # Checks if any nodes were created while making edges. If so, raises a warning and prints those nodes.
+        # Context: If an edge is made connecting a node that networkx does not yet know of (because you haven't made
+        # it before), it will simply create a new node with that identifier. This means it would not have a
+        # 'layer' attribute, which will raise an error at render-time.
         s = [n for n, data in g.nodes(data=True) if "layer" not in data]
         if s:
             warn("!!! Something went wrong: a host or switch was not included in the ManyEndpointsTopology"
                  " object, but was included in one of its switches !!!")
+            print("\nSuspect nodes:")
+            for i in s:
+                print(i.name)
 
         pos = nx.multipartite_layout(g, subset_key="layer", align="horizontal")
 
         colours = [g.nodes[n]["colour"] for n in g.nodes]
-        nx.draw(g, pos, with_labels=True, node_color=colours)
+        edge_colours = [g.edges[e]["colour"] for e in g.edges]
+
+        nx.draw(g, pos, with_labels=True, node_color=colours, edge_color=edge_colours)
         plt.show()
