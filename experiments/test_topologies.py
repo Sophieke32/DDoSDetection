@@ -1,4 +1,5 @@
 from lib.topologies.connection import Connection
+from lib.topologies.topology import Topology
 from lib.topologies.many_endpoints_topology import ManyEndpointsTopology
 from lib.topologies.switch import Switch
 from lib.topologies.host import Host
@@ -6,6 +7,7 @@ from lib.topologies.link import Link
 from lib.topologies.checker import Checker
 from lib.topologies.network_error import NetworkError
 from mininet.log import warn
+
 
 
 def build_external_network(benign, malicious, topology, benign_colour, malicious_colour, endpoints):
@@ -76,36 +78,36 @@ On the other side of the network, we use malicious and benign. These again are e
 functions that return a number, and that number determines how many malicious and how many benign
 external nodes there will be. These will all be directly connected to the firewall node.
 """
-# def get_tree_topology(tree_shape: list, malicious, benign):
-#     if len(tree_shape) == 0:
-#         raise NetworkError("Cannot make empty internal network!")
-#     topology = Topology()
-#     core_switch = topology.add_switch(Switch(topology, colour="000000"))
-#
-#     number_of_internal_nodes = len(topology.internal_hosts)
-#
-#     # Create the internal network of the topology
-#     create_internal_network(tree_shape, core_switch, topology)
-#
-#     if number_of_internal_nodes == len(topology.internal_hosts):
-#         warn("!!! Creating topology without an internal network !!!")
-#
-#     # Create the external network of the topology
-#     number_of_malicious_nodes = malicious()
-#     number_of_benign_nodes = benign()
-#
-#     if number_of_malicious_nodes + number_of_benign_nodes == 0:
-#         warn("!!! Creating topology without an external network !!!")
-#
-#     for i in range(number_of_malicious_nodes):
-#         host = topology.add_malicious_host(Host(topology, "m" + str(i), colour='#F55B27'))
-#         topology.add_link(Link(topology, host, core_switch))
-#
-#     for i in range(number_of_benign_nodes):
-#         host = topology.add_benign_host(Host(topology, "b" + str(i), colour="#07D962"))
-#         topology.add_link(Link(topology, host, core_switch))
-#
-#     return topology
+def get_tree_topology(tree_shape: list, malicious, benign):
+    if len(tree_shape) == 0:
+        raise NetworkError("Cannot make empty internal network!")
+    topology = Topology()
+    core_switch = topology.add_switch(Switch(topology, colour="000000"))
+
+    number_of_internal_nodes = len(topology.internal_hosts)
+
+    # Create the internal network of the topology
+    create_internal_network(tree_shape, core_switch, topology)
+
+    if number_of_internal_nodes == len(topology.internal_hosts):
+        warn("!!! Creating topology without an internal network !!!")
+
+    # Create the external network of the topology
+    number_of_malicious_nodes = malicious()
+    number_of_benign_nodes = benign()
+
+    if number_of_malicious_nodes + number_of_benign_nodes == 0:
+        warn("!!! Creating topology without an external network !!!")
+
+    for i in range(number_of_malicious_nodes):
+        host = topology.add_malicious_host(Host(topology, "m" + str(i), colour='#F55B27'))
+        topology.add_link(Link(topology, host, core_switch))
+
+    for i in range(number_of_benign_nodes):
+        host = topology.add_benign_host(Host(topology, "b" + str(i), colour="#07D962"))
+        topology.add_link(Link(topology, host, core_switch))
+
+    return topology
 
 
 def create_checkers(tree_shape: list, parent, topology, layer):

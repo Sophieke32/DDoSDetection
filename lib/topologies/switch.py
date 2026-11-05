@@ -9,7 +9,7 @@ class Switch(Node):
     name = None
     connection = 0
 
-    def __init__(self, topology: Topology, name=None, ip=None, colour='#000000', connection=0):
+    def __init__(self, topology: Topology, name=None, ip=None, colour='#000000', connection=False):
         super().__init__(colour=colour)
         self.topology = topology
 

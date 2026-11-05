@@ -122,8 +122,8 @@ class ManyEndpointsTopology(Topology):
 
         pos = nx.multipartite_layout(g, subset_key="layer", align="horizontal")
 
-        colours = [g.nodes[n]["colour"] for n in g.nodes]
+        node_colours = [g.nodes[n]["colour"] for n in g.nodes]
         edge_colours = [g.edges[e]["colour"] for e in g.edges]
 
-        nx.draw(g, pos, with_labels=True, node_color=colours, edge_color=edge_colours)
+        nx.draw(g, pos, with_labels=True, node_color=node_colours, edge_color=edge_colours)
         plt.show()

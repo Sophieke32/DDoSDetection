@@ -1,6 +1,8 @@
 from lib.topologies.node import Node
 from typing import TYPE_CHECKING
 
+from lib.topologies.switch import Switch
+
 if TYPE_CHECKING:
     from topology import Topology
 
@@ -13,7 +15,7 @@ class Link:
         self.name = src.name + "_" + dst.name
         self.mn_representation = None
         self.connection = connection
-        if connection:
+        if isinstance(self.src, Switch) or isinstance(self.dst, Switch):
             self.colour = "#000000"
         else:
             self.colour = "#FF0000"

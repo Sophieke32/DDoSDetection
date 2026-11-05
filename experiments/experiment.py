@@ -1,3 +1,5 @@
+import random
+
 from mininet.log import setLogLevel
 from experiments import test_topologies
 from lib.network import Network
@@ -5,7 +7,6 @@ from lib.network import Network
 if __name__ == '__main__':
     # Tell mininet to print useful information
     setLogLevel('info')
-    # network = Network(get_single_switch_topology(2))
     # network = Network(pcap_to_network("../resources/pcaps/combined_Mirai_and_Benign_dataset_Full.csv"))
     # network = Network(test_topologies.get_tree_topology(
     #     [

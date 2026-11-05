@@ -118,10 +118,16 @@ class Topology(Topo):
         for node in switches:
             g.add_node(node.name, colour=node.colour)
 
-        for link in self.link_objects:
-            g.add_edge(link.src.name, link.dst.name)
+        for connection in self.get_all_connections():
+            g.add_edge(connection.src.name, connection.dst.name, colour=connection.get_src_link().colour)
 
-        colours = [g.nodes[n]["colour"] for n in g.nodes]
+        for link in self.get_all_links():
+            if not link.connection:
+                g.add_edge(link.src.name, link.dst.name, colour=link.colour)
 
-        nx.draw(g, with_labels=True, node_color=colours)
+
+        node_colours = [g.nodes[n]["colour"] for n in g.nodes]
+        edge_colours = [g.edges[e]["colour"] for e in g.edges]
+
+        nx.draw(g, with_labels=True, node_color=node_colours, edge_color=edge_colours)
         plt.show()
