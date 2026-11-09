@@ -5,7 +5,7 @@ from lib.topologies.switch import Switch
 from lib.topologies.host import Host
 from lib.topologies.link import Link
 from lib.topologies.checker import Checker
-from lib.topologies.network_error import NetworkError
+from lib.topologies.network_error import TopologyError
 from mininet.log import warn
 
 
@@ -18,12 +18,12 @@ def build_external_network(benign, malicious, topology, benign_colour, malicious
         warn("!!! Creating topology without an external network !!!")
 
     for i in range(number_of_malicious_nodes):
-        host = topology.add_malicious_host(Host(topology, "m" + str(i), colour=malicious_colour))
+        host = topology.add_external_host(Host(topology, "m" + str(i), colour=malicious_colour), benign=False)
         for endpoint in endpoints:
             topology.add_connection(Connection(topology, host, endpoint))
 
     for i in range(number_of_benign_nodes):
-        host = topology.add_benign_host(Host(topology, "b" + str(i), colour=benign_colour))
+        host = topology.add_external_host(Host(topology, "b" + str(i), colour=benign_colour), benign=True)
         for endpoint in endpoints:
             topology.add_connection(Connection(topology, host, endpoint))
 
@@ -41,7 +41,7 @@ reached the leaves of the network, and so hosts should be created.
 """
 def create_internal_network(tree_shape, parent, topology):
     if len(tree_shape) == 0:
-        raise NetworkError("Cannot make empty internal network component!")
+        raise TopologyError("Cannot make empty internal network component!")
     if len(tree_shape) == 1:
         create_hosts(tree_shape[0], parent, topology)
         return
@@ -80,16 +80,16 @@ external nodes there will be. These will all be directly connected to the firewa
 """
 def get_tree_topology(tree_shape: list, malicious, benign):
     if len(tree_shape) == 0:
-        raise NetworkError("Cannot make empty internal network!")
+        raise TopologyError("Cannot make empty internal network!")
     topology = Topology()
     core_switch = topology.add_switch(Switch(topology, colour="000000"))
 
-    number_of_internal_nodes = len(topology.internal_hosts)
+    number_of_internal_nodes = len(topology.get_internal_hosts())
 
     # Create the internal network of the topology
     create_internal_network(tree_shape, core_switch, topology)
 
-    if number_of_internal_nodes == len(topology.internal_hosts):
+    if number_of_internal_nodes == len(topology.get_internal_hosts()):
         warn("!!! Creating topology without an internal network !!!")
 
     # Create the external network of the topology
@@ -100,11 +100,11 @@ def get_tree_topology(tree_shape: list, malicious, benign):
         warn("!!! Creating topology without an external network !!!")
 
     for i in range(number_of_malicious_nodes):
-        host = topology.add_malicious_host(Host(topology, "m" + str(i), colour='#F55B27'))
+        host = topology.add_external_host(Host(topology, "m" + str(i), colour='#F55B27'), benign=False)
         topology.add_link(Link(topology, host, core_switch))
 
     for i in range(number_of_benign_nodes):
-        host = topology.add_benign_host(Host(topology, "b" + str(i), colour="#07D962"))
+        host = topology.add_external_host(Host(topology, "b" + str(i), colour="#07D962"), benign=True)
         topology.add_link(Link(topology, host, core_switch))
 
     return topology
@@ -112,7 +112,7 @@ def get_tree_topology(tree_shape: list, malicious, benign):
 
 def create_checkers(tree_shape: list, parent, topology, layer):
     if len(tree_shape) == 0:
-        raise NetworkError("Cannot make empty internal network!")
+        raise TopologyError("Cannot make empty internal network!")
     if len(tree_shape) == 1:
         create_endpoints(tree_shape[0], parent, topology)
         return
@@ -149,7 +149,7 @@ the core checker.
 """
 def get_distributed_topology(net_shape: list, malicious, benign):
     if len(net_shape) == 0:
-        raise NetworkError("Cannot make empty internal network!")
+        raise TopologyError("Cannot make empty internal network!")
 
     topology = ManyEndpointsTopology()
     core_checker = topology.add_checker(Checker(topology, colour='#f0f0f0', name="cc0"), 0) # core checker is black
@@ -203,7 +203,7 @@ def create_funnel_endpoints(topology: ManyEndpointsTopology):
 
     # Edge case handling
     if len(core_routers) < 1:
-        raise NetworkError("Cannot make empty funnel network!")
+        raise TopologyError("Cannot make empty funnel network!")
     if len(core_routers) == 1:
         switch = topology.add_endpoint(Host(topology, colour='#27ADF5')) # Endpoints are blue
         topology.add_connection(Connection(topology, switch, core_routers[0]))
@@ -245,7 +245,7 @@ get_entry_funnel_topology([lambda : 2, lambda : 3], lambda x : 2, lambda : 3) cr
 """
 def get_entry_funnel_topology(net_shape, malicious, benign):
     if len(net_shape) <= 0:
-        raise NetworkError("Cannot make empty funnel network!")
+        raise TopologyError("Cannot make empty funnel network!")
 
     topology = ManyEndpointsTopology()
     core_checker = topology.add_checker(Checker(topology, colour='#f4f4f4', name="cc0"), 0)  # core checker is grey

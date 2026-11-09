@@ -14,13 +14,14 @@ class Connection:
     dst_link: Link
     switch: Switch
 
-    def __init__(self, topology: Topology, src: Host, dst: Host):
+    def __init__(self, topology: Topology, src: Host, dst: Host, delay="5ms"):
         self.src = src
         self.dst = dst
-        switch_name = "switch_" + src.name + "_" + dst.name
+        self.delay = delay
+        switch_name = src.name + "_" + dst.name
         self.switch = Switch(topology, name=switch_name, connection=True)
-        self.src_link = Link(topology, self.src, self.switch, connection=True)
-        self.dst_link = Link(topology, self.dst, self.switch, connection=True)
+        self.src_link = Link(topology, self.src, self.switch, connection=True, delay=self.delay)
+        self.dst_link = Link(topology, self.dst, self.switch, connection=True, delay=self.delay)
 
     def get_src(self):
         return self.src
@@ -36,4 +37,3 @@ class Connection:
 
     def get_switch(self):
         return self.switch
-
