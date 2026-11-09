@@ -31,10 +31,12 @@ class ManyEndpointsTopology(Topology):
         for i in self.get_all_checkers():
             i.build()
 
-        print(self.aggregator)
         self.aggregator.build()
 
         for i in self.get_external_nodes():
+            i.build()
+
+        for i in self.get_all_switches():
             i.build()
 
         for i in self.link_objects:
@@ -46,7 +48,7 @@ class ManyEndpointsTopology(Topology):
             info("### Replacing existing aggregator with a new one ###")
             self.remove_host(self.aggregator)
         self.aggregator = aggregator
-        self.internal_hosts.append(aggregator)
+        self.add_internal_host(aggregator)
         return aggregator
 
     def add_checker(self, checker, layer):
@@ -84,7 +86,11 @@ class ManyEndpointsTopology(Topology):
     Connections turn into a single black connection between the src and dst
     Manually made links render as a red line, as a warning to the user not to connect two hosts using just a link.
     """
-    def visualise(self):
+    def create_visualisation(self):
+        fig = plt.figure(figsize=(8, 8))
+        ax = plt.subplot(111)
+        ax.set_title('Topology', fontsize=10)
+
         g = nx.Graph()
 
         for endpoint in self.get_endpoints():
@@ -126,4 +132,3 @@ class ManyEndpointsTopology(Topology):
         edge_colours = [g.edges[e]["colour"] for e in g.edges]
 
         nx.draw(g, pos, with_labels=True, node_color=node_colours, edge_color=edge_colours)
-        plt.show()

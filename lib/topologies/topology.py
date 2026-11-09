@@ -1,6 +1,7 @@
 from mininet.topo import Topo
 
 from lib.topologies.connection import Connection
+from lib.topologies.network_error import TopologyError
 from lib.topologies.node import Node
 from lib.topologies.host import Host
 from lib.topologies.link import Link
@@ -10,12 +11,13 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 class Topology(Topo):
-    benign_hosts: list[Host] = []       # Holds all the external benign hosts
-    malicious_hosts: list[Host] = []    # Holds all the external malicious hosts
-    internal_hosts: list[Host] = []     # Holds all internal nodes in the network
-    switch_objects: list[Switch] = []   # Holds all the switch objects in the network
-    connections: list[Connection] = []  # Used to connect two nodes
-    link_objects: list[Link] = []       # Holds all the link objects in the network
+    benign_external_hosts: list[Host] = []               # Holds all the external benign hosts
+    malicious_external_hosts: list[Host] = []            # Holds all the external malicious hosts
+    benign_internal_hosts: list[Host] = []      # Holds all benign internal nodes in the network
+    malicious_internal_hosts: list[Host] = []   # Holds all malicious internal nodes in the network
+    switch_objects: list[Switch] = []           # Holds all the switch objects in the network
+    connections: list[Connection] = []          # Used to connect two nodes
+    link_objects: list[Link] = []               # Holds all the link objects in the network
 
     def __init__(self, *args, **params):
         super().__init__(*args, **params)
@@ -30,18 +32,33 @@ class Topology(Topo):
         for i in self.get_all_links():
             i.build()
 
-
-    def add_benign_host(self, host):
-        self.benign_hosts.append(host)
+    def add_external_host(self, host, benign=True):
+        if benign:
+            self.benign_external_hosts.append(host)
+        else:
+            self.malicious_external_hosts.append(host)
         return host
 
-    def add_malicious_host(self, host):
-        self.malicious_hosts.append(host)
+    def add_internal_host(self, host, benign=True):
+        if benign:
+            self.benign_internal_hosts.append(host)
+        else:
+            self.malicious_internal_hosts.append(host)
         return host
 
-    def add_internal_host(self, host):
-        self.internal_hosts.append(host)
-        return host
+    def make_internal_host_benign(self, host):
+        if host in self.malicious_internal_hosts:
+            self.benign_internal_hosts.append(host)
+            self.malicious_internal_hosts.remove(host)
+        else:
+            raise TopologyError("Tried to make non-malicious host benign: " + host)
+
+    def make_internal_host_malicious(self, host):
+        if host in self.benign_internal_hosts:
+            self.malicious_internal_hosts.append(host)
+            self.benign_internal_hosts.remove(host)
+        else:
+            raise TopologyError("Tried to make non-benign host malicious: " + host)
 
     def add_switch(self, switch):
         self.switch_objects.append(switch)
@@ -78,19 +95,24 @@ class Topology(Topo):
         self.remove_links_from_node(switch)
 
     def remove_host(self, host):
-        if host in self.internal_hosts:
-            self.internal_hosts.remove(host)
-        if host in self.malicious_hosts:
-            self.malicious_hosts.remove(host)
-        if host in self.benign_hosts:
-            self.benign_hosts.remove(host)
+        if host in self.benign_internal_hosts:
+            self.benign_internal_hosts.remove(host)
+        if host in self.malicious_internal_hosts:
+            self.malicious_internal_hosts.remove(host)
+        if host in self.malicious_external_hosts:
+            self.malicious_external_hosts.remove(host)
+        if host in self.benign_external_hosts:
+            self.benign_external_hosts.remove(host)
         self.remove_links_from_node(host)
 
     def get_external_nodes(self):
-        return self.benign_hosts + self.malicious_hosts
+        return self.benign_external_hosts + self.malicious_external_hosts
+
+    def get_internal_hosts(self):
+        return self.benign_internal_hosts + self.malicious_internal_hosts
 
     def get_all_hosts(self):
-        return self.benign_hosts + self.malicious_hosts + self.internal_hosts
+        return self.benign_external_hosts + self.malicious_external_hosts + self.benign_internal_hosts + self.malicious_internal_hosts
 
     def get_all_switches(self):
         return self.switch_objects
@@ -107,7 +129,11 @@ class Topology(Topo):
     """
     Creates a visualisation of the network using matplotlib. Useful for debugging. 
     """
-    def visualise(self):
+    def create_visualisation(self):
+        fig = plt.figure(figsize=(12, 12))
+        ax = plt.subplot(111)
+        ax.set_title('Topology', fontsize=10)
+
         g = nx.Graph()
 
         hosts = self.get_all_hosts()
@@ -130,4 +156,19 @@ class Topology(Topo):
         edge_colours = [g.edges[e]["colour"] for e in g.edges]
 
         nx.draw(g, with_labels=True, node_color=node_colours, edge_color=edge_colours)
-        plt.show()
+
+        return g
+
+    """
+    Shows the visualisation
+    """
+    def show_visualisation(self):
+        self.create_visualisation()
+        plt.show(block=False)
+
+    """
+    Saves the visualisation
+    """
+    def save_visualisation(self, filename):
+        self.create_visualisation()
+        plt.savefig(filename + ".png")

@@ -6,8 +6,7 @@ from mininet.link import TCLink
 from mininet.log import setLogLevel, info
 from mininet.cli import CLI
 
-from topology import CompanyTopo
-
+from lib.topologies.topology_redundnet import CompanyTopo
 
 # Alle config ting
 TOTAL_USERS = 9

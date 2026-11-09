@@ -1,7 +1,7 @@
 import unittest
 from hypothesis import given, strategies as st
-from lib.controller.sketches.count_min_sketch import CountMinSketch
-from lib.controller.sketches.hash_function_generator import HashFunctionGenerator
+from lib.aggregators.count_min_sketch import CountMinSketch
+from lib.aggregators.hash_function_generator import HashFunctionGenerator
 
 class CountMinSketchTest(unittest.TestCase):
 

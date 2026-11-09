@@ -1,6 +1,6 @@
-from lib.topologies.network_error import NetworkError
+from lib.topologies.network_error import TopologyError
 
-class NoMNRepresentationError(NetworkError):
+class NoMNRepresentationError(TopologyError):
     """Used when trying to access the MiniNet representation of a network element
     that hasn't yet been created."""
 

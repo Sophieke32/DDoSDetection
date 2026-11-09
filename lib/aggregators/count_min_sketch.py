@@ -1,7 +1,10 @@
 import math
 import numpy as np
 
-class CountMinSketch:
+from lib.aggregators.aggregator import Aggregator
+
+
+class CountMinSketch(Aggregator):
     w = 0,
     d = 0,
     epsilon = 0,
@@ -10,6 +13,7 @@ class CountMinSketch:
     hashes = []
 
     def __init__(self, accuracy, confidence, hash_function_generator):
+        super().__init__()
         self.epsilon = accuracy # Smaller is more accurate
         self.delta = confidence # Smaller is more confidence
         self.d = math.ceil(math.log(math.pow(self.delta, -1.0)))
@@ -32,3 +36,6 @@ class CountMinSketch:
 
         return res
 
+    def get_data(self):
+        return self.table, self.hashes
+a

@@ -7,9 +7,9 @@ if TYPE_CHECKING:
     from topology import Topology
 
 class Link:
-    def __init__(self, topology: Topology, src: Node, dst: Node, connection=False):
+    def __init__(self, topology: Topology, src: Node, dst: Node, connection=False, delay="5ms"):
         self.topology = topology
-
+        self.delay = delay
         self.src = src
         self.dst = dst
         self.name = src.name + "_" + dst.name
@@ -21,4 +21,4 @@ class Link:
             self.colour = "#FF0000"
 
     def build(self):
-        self.mn_representation = self.topology.addLink(self.src.mn_representation, self.dst.mn_representation, protocols='OpenFlow13')
+        self.mn_representation = self.topology.addLink(self.src.mn_representation, self.dst.mn_representation, protocols='OpenFlow13', delay=self.delay)

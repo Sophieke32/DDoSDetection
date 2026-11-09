@@ -1,5 +1,5 @@
-class NetworkError(Exception):
-    """Used when something goes wrong with the network."""
+class TopologyError(Exception):
+    """Used when something goes wrong with the topology."""
 
     def __init__(self, message):
         self.message = message
