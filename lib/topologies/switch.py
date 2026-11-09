@@ -7,8 +7,9 @@ if TYPE_CHECKING:
 class Switch(Node):
     topology = None
     name = None
+    connection = 0
 
-    def __init__(self, topology: Topology, name=None, ip=None, colour='#000000'):
+    def __init__(self, topology: Topology, name=None, ip=None, colour='#000000', connection=False):
         super().__init__(colour=colour)
         self.topology = topology
 
@@ -18,6 +19,8 @@ class Switch(Node):
 
         if ip is not None:
             self.ip = ip
+
+        self.connection = connection
 
     def generate_name(self):
         return "s" + str(len(self.topology.get_all_switches()))

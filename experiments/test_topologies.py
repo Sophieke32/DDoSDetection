@@ -1,3 +1,5 @@
+from lib.topologies.connection import Connection
+from lib.topologies.topology import Topology
 from lib.topologies.many_endpoints_topology import ManyEndpointsTopology
 from lib.topologies.switch import Switch
 from lib.topologies.host import Host
@@ -5,6 +7,7 @@ from lib.topologies.link import Link
 from lib.topologies.checker import Checker
 from lib.topologies.network_error import NetworkError
 from mininet.log import warn
+
 
 
 def build_external_network(benign, malicious, topology, benign_colour, malicious_colour, endpoints):
@@ -17,12 +20,12 @@ def build_external_network(benign, malicious, topology, benign_colour, malicious
     for i in range(number_of_malicious_nodes):
         host = topology.add_malicious_host(Host(topology, "m" + str(i), colour=malicious_colour))
         for endpoint in endpoints:
-            topology.add_link(Link(topology, host, endpoint))
+            topology.add_connection(Connection(topology, host, endpoint))
 
     for i in range(number_of_benign_nodes):
         host = topology.add_benign_host(Host(topology, "b" + str(i), colour=benign_colour))
         for endpoint in endpoints:
-            topology.add_link(Link(topology, host, endpoint))
+            topology.add_connection(Connection(topology, host, endpoint))
 
 
 """
@@ -75,36 +78,36 @@ On the other side of the network, we use malicious and benign. These again are e
 functions that return a number, and that number determines how many malicious and how many benign
 external nodes there will be. These will all be directly connected to the firewall node.
 """
-# def get_tree_topology(tree_shape: list, malicious, benign):
-#     if len(tree_shape) == 0:
-#         raise NetworkError("Cannot make empty internal network!")
-#     topology = Topology()
-#     core_switch = topology.add_switch(Switch(topology, colour="000000"))
-#
-#     number_of_internal_nodes = len(topology.internal_hosts)
-#
-#     # Create the internal network of the topology
-#     create_internal_network(tree_shape, core_switch, topology)
-#
-#     if number_of_internal_nodes == len(topology.internal_hosts):
-#         warn("!!! Creating topology without an internal network !!!")
-#
-#     # Create the external network of the topology
-#     number_of_malicious_nodes = malicious()
-#     number_of_benign_nodes = benign()
-#
-#     if number_of_malicious_nodes + number_of_benign_nodes == 0:
-#         warn("!!! Creating topology without an external network !!!")
-#
-#     for i in range(number_of_malicious_nodes):
-#         host = topology.add_malicious_host(Host(topology, "m" + str(i), colour='#F55B27'))
-#         topology.add_link(Link(topology, host, core_switch))
-#
-#     for i in range(number_of_benign_nodes):
-#         host = topology.add_benign_host(Host(topology, "b" + str(i), colour="#07D962"))
-#         topology.add_link(Link(topology, host, core_switch))
-#
-#     return topology
+def get_tree_topology(tree_shape: list, malicious, benign):
+    if len(tree_shape) == 0:
+        raise NetworkError("Cannot make empty internal network!")
+    topology = Topology()
+    core_switch = topology.add_switch(Switch(topology, colour="000000"))
+
+    number_of_internal_nodes = len(topology.internal_hosts)
+
+    # Create the internal network of the topology
+    create_internal_network(tree_shape, core_switch, topology)
+
+    if number_of_internal_nodes == len(topology.internal_hosts):
+        warn("!!! Creating topology without an internal network !!!")
+
+    # Create the external network of the topology
+    number_of_malicious_nodes = malicious()
+    number_of_benign_nodes = benign()
+
+    if number_of_malicious_nodes + number_of_benign_nodes == 0:
+        warn("!!! Creating topology without an external network !!!")
+
+    for i in range(number_of_malicious_nodes):
+        host = topology.add_malicious_host(Host(topology, "m" + str(i), colour='#F55B27'))
+        topology.add_link(Link(topology, host, core_switch))
+
+    for i in range(number_of_benign_nodes):
+        host = topology.add_benign_host(Host(topology, "b" + str(i), colour="#07D962"))
+        topology.add_link(Link(topology, host, core_switch))
+
+    return topology
 
 
 def create_checkers(tree_shape: list, parent, topology, layer):
@@ -185,9 +188,8 @@ def create_funnel_checkers(tree_shape: list, parent, topology, layer):
 
     temp = tree_shape[0]()
     for i in range(temp):
-        print("Adding a checker on layer:", layer)
         checker = topology.add_checker(Checker(topology, colour="#FAC72F"), layer) # Internal checkers are yellow
-        topology.add_link(Link(topology, checker, parent))
+        topology.add_connection(Connection(topology, checker, parent))
         create_funnel_checkers(tree_shape[1:], checker, topology, layer + 1)
 
 """
@@ -203,22 +205,22 @@ def create_funnel_endpoints(topology: ManyEndpointsTopology):
     if len(core_routers) < 1:
         raise NetworkError("Cannot make empty funnel network!")
     if len(core_routers) == 1:
-        switch = topology.add_endpoint(Switch(topology, colour='#27ADF5')) # Endpoints are blue
-        topology.add_link(Link(topology, switch, core_routers[0]))
-        topology.add_link(Link(topology, switch, topology.get_aggregator()))
+        switch = topology.add_endpoint(Host(topology, colour='#27ADF5')) # Endpoints are blue
+        topology.add_connection(Connection(topology, switch, core_routers[0]))
+        topology.add_connection(Connection(topology, switch, topology.get_aggregator()))
         return
 
 
     for i in range(len(core_routers) + 1):
-        switch = topology.add_endpoint(Switch(topology, colour='#27ADF5')) # Endpoints are blue
-        topology.add_link(Link(topology, switch, topology.get_aggregator()))
+        switch = topology.add_endpoint(Host(topology, colour='#27ADF5')) # Endpoints are blue
+        topology.add_connection(Connection(topology, switch, topology.get_aggregator()))
 
-    topology.add_link(Link(topology, topology.get_endpoints()[0], core_routers[0]))
-    topology.add_link(Link(topology, topology.get_endpoints()[-1], core_routers[-1]))
+    topology.add_connection(Connection(topology, topology.get_endpoints()[0], core_routers[0]))
+    topology.add_connection(Connection(topology, topology.get_endpoints()[-1], core_routers[-1]))
 
     for i in range(1, len(topology.get_endpoints()) - 1):   # For each endpoint that isnt the first or last
-        topology.add_link(Link(topology, topology.get_endpoints()[i], core_routers[i-1]))
-        topology.add_link(Link(topology, topology.get_endpoints()[i], core_routers[i]))
+        topology.add_connection(Connection(topology, topology.get_endpoints()[i], core_routers[i-1]))
+        topology.add_connection(Connection(topology, topology.get_endpoints()[i], core_routers[i]))
 
 """
 Creates a funnel network according to the net_shape, as well as malicious() and benign() external nodes.
@@ -248,7 +250,7 @@ def get_entry_funnel_topology(net_shape, malicious, benign):
     topology = ManyEndpointsTopology()
     core_checker = topology.add_checker(Checker(topology, colour='#f4f4f4', name="cc0"), 0)  # core checker is grey
     aggregator = topology.add_aggregator(Host(topology, colour='#000fff', name="agg0"))  # aggregator is blue
-    topology.add_link(Link(topology, aggregator, core_checker))
+    topology.add_connection(Connection(topology, aggregator, core_checker))
 
     number_of_checkers = topology.number_of_checkers()
 
