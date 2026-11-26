@@ -1,9 +1,9 @@
-from dataclasses import asdict, dataclass
-import socket
 import glob
-import os
-import time
 import json
+import os
+import socket
+import time
+from dataclasses import asdict, dataclass
 import random
 
 TEST = True # a test mode selector
@@ -248,7 +248,7 @@ def DataCalculation():
 '''
 if __name__ == "__main__":
     print("Name: ", NODE_ID)
-    DataCalculation()
+    data_calculation()
 #'''
 #'''
  # run continuously 
