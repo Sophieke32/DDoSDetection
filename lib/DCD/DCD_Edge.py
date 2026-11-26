@@ -1,10 +1,9 @@
-from dataclasses import asdict, dataclass
-import socket
 import glob
-import os
-import time
 import json
-
+import os
+import socket
+import time
+from dataclasses import asdict, dataclass
 
 COLLECT_TIME = 60  # Time interval for collecting network data in seconds`
 SAMPLE_INERVAL = 1 
