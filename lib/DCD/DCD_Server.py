@@ -60,7 +60,7 @@ def get_data(tree: dict):
                     if not all(field in alert for field in required_fields):
                         print(f"data missing from {addr[0]}")
                         continue
-                    Update_Tree(tree, alert)
+                    update_tree(tree, alert)
                 except Exception as error:
                     print(f"Server Error with packet (get_data). From {addr[0]}: {error!r}")
                     traceback.print_exc()    
@@ -71,7 +71,7 @@ def create_tree() -> dict: #Don't know how to do this yet, but this is the funct
         "router_count": 0,
     }
 
-def Update_Tree(tree, alert):
+def update_tree(tree, alert):
     if not TEST:
         # Add there to the funciton() previous_data, Curent_Data, 
         """
@@ -85,8 +85,8 @@ def Update_Tree(tree, alert):
         previous_data["Counter"] += 1
         
         # Append current data to the lists
-        previous_data["Previous_rx_packets"].append(Curent_Data["rx_packets"])
-        previous_data["Previous_tx_packets"].append(Curent_Data["tx_packets"])
+        #previous_data["Previous_rx_packets"].append(Curent_Data["rx_packets"])
+        #previous_data["Previous_tx_packets"].append(Curent_Data["tx_packets"])
     
     #NOTE Belive it would work better with the below code
     elif TEST:
