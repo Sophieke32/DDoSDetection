@@ -17,7 +17,7 @@ previous_data = {
     "Previous_tx_packets": []
 }
 
-def get_data(tree: dict):
+def get_data(tree: dict) -> None:
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.bind((LISTEN_IP, LISTEN_PORT_INTRA))
         print(f"[CAT SERVER] Listening on {LISTEN_IP}:{LISTEN_PORT_INTRA}...")
@@ -27,18 +27,18 @@ def get_data(tree: dict):
             try:
                 alert = json.loads(raw_bytes.decode("utf-8"))
                 print(f"[CAT SERVER] Received from {addr[0]}: {alert['nd_id']} -> {alert['router_status']}")
-                Update_Tree(previous_data, alert)
+                update_tree(previous_data, alert)
             except (json.JSONDecodeError, KeyError) as e:
                 print(f"[CAT SERVER] Malformed packet from {addr[0]}: {e}") 
     
-def Create_Tree() -> dict: #Don't know how to do this yet, but this is the function that will create the tree structure for the CAT server.
+def create_tree() -> dict: #Don't know how to do this yet, but this is the function that will create the tree structure for the CAT server.
    """Initialize the intra-domain CAT subtree."""
    return {
         "nodes": {},          # Maps nd_id -> {"fl_id", "up_id", "dn_id"}
         "router_count": 0,
     }
 
-def Update_Tree(previous_data, Curent_Data):
+def update_tree(previous_data, Curent_Data) -> dict:
     """
     Update the tree structure with new data.
     
@@ -52,6 +52,7 @@ def Update_Tree(previous_data, Curent_Data):
     # Append current data to the lists
     previous_data["Previous_rx_packets"].append(Curent_Data["rx_packets"])
     previous_data["Previous_tx_packets"].append(Curent_Data["tx_packets"])
+    return previous_data
 
 def share_data_interdomain(tree: dict) -> None:
     while True:
@@ -97,7 +98,7 @@ def combine_tree_data(external_tree: dict, internal_tree: dict) -> None:
     tree_updated.set()
 
 if __name__ == "__main__":
-    tree = Create_Tree()
+    tree = create_tree()
 
     # Start both threads ONCE before keeping the main thread alive
     receiver_thread = threading.Thread(target=get_data, args=(tree,), daemon=True)
