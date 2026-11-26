@@ -38,7 +38,7 @@ class AlertMessage:
     dn_num: int #Number of downstream nodes
     up_id: list[str] #Node ID of upstream node
     dn_id: list[str] #Node ID of downstream node
-    RouterStatus: str = "normal" #Suspicious attack or normal traffic
+    router_status: str = "normal" #Suspicious attack or normal traffic
     cycle_id: int = 0
 
 def send_network_data(alert: AlertMessage) -> None:
@@ -51,21 +51,21 @@ def send_network_data(alert: AlertMessage) -> None:
 def collect_network_data():
     
     # Implementation for collecting network data
-    Time_Start = time.monotonic()
-    Previous_Time = Time_Start
-    Data = {
+    time_start = time.monotonic()
+    previous_time = time_start
+    data = {
         "node_id": NODE_ID,
         "insterfaces": {},
         "rx_packets": [],
         "tx_packets": [],
     }
     for interface in INTERFACES:
-        Data["insterfaces"][interface] = {
+        data["insterfaces"][interface] = {
             "rx_packets": [],
             "tx_packets": [],
             "Counter": 0,
         }
-    while time.monotonic() - Time_Start < COLLECT_TIME:
+    while time.monotonic() - time_start < COLLECT_TIME:
         # Collect network data here
         time.sleep(SAMPLE_INERVAL)
         
@@ -83,27 +83,27 @@ def collect_network_data():
                 with open(tx_packets_path, "r") as file:
                     tx_packets = int(file.read())
                     
-                Data["insterfaces"][interface]["rx_packets"].append(rx_packets)
-                Data["insterfaces"][interface]["tx_packets"].append(tx_packets)
-                Data["insterfaces"][interface]["Counter"] += 1
+                data["insterfaces"][interface]["rx_packets"].append(rx_packets)
+                data["insterfaces"][interface]["tx_packets"].append(tx_packets)
+                data["insterfaces"][interface]["Counter"] += 1
             except FileNotFoundError:
                 print(f"Error: Could not find the statistics files for interface {interface}.")       
-    return Data
+    return data
     
-    def Send_Network_Data(Data):  # Send the collected data to the DCD server
-        return Data
+    def Send_Network_Data(data):  # Send the collected data to the DCD server
+        return data
 
 
 
 
-def DataCalculation():
+def data_calculation():
     
     global previous_data
-    Curent_Data = collect_network_data()
-    Resultes = {}
+    curent_data = collect_network_data()
+    resultes = {}
     
     
-    for interface, measurements in Curent_Data["insterfaces"].items():
+    for interface, measurements in curent_data["insterfaces"].items():
         
         rx_values = measurements["rx_packets"]
         tx_values = measurements["tx_packets"]
@@ -156,7 +156,7 @@ def DataCalculation():
             print("shit broken transmit")
                 
             
-        Resultes[interface] = {
+        resultes[interface] = {
             "Diffrence_RX": Diffrence_RX,
             "Diffrence_TX": Diffrence_TX,
         }
@@ -164,11 +164,11 @@ def DataCalculation():
         previous_data[interface]["TX_Avr"] = Current_TX_Avr
   
         
-    return Resultes
+    return resultes
 '''
 if __name__ == "__main__":
     print("Name: ", NODE_ID)
-    DataCalculation()
+    data_calculation()
 #'''
 #'''
  # Make run continuously 
@@ -182,5 +182,5 @@ if __name__ == "__main__":
         print("No interfaces found. Exiting.")
     else:
         while True:
-            DataCalculation()
+            data_calculation()
 #'''
