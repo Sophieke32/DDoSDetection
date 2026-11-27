@@ -1,6 +1,11 @@
 import random
 import math
 
+"""
+https://dn760004.eu.archive.org/0/items/introduction-to-algorithms-third-edition-2009/Introduction_to_Algorithms_Third_Edition_%282009%29.pdf
+Page 267 holds the details on this hash function generator. Found via:
+https://github.com/guydav/minsketch/blob/master/minsketch/hash_strategy.py
+"""
 class HashFunctionGenerator:
     LARGE_PRIME = 18446744073709551557
 
