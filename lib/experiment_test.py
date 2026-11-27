@@ -16,14 +16,14 @@ POLL_INTERVAL = 1.0
 LOG_INTERVAL = 1.0
 
 class Experiment:
-    ourdir = os.path.abspath("results/expTest") 
+    outdir = os.path.abspath("results/")
     phases = [(20, 50), (20, 500), (20, 50)]
     sketch = []
     poll_interval = 1.0
     log_interval = 1.0
 
     def __init__(self, phases, sketch, name):
-        self.outdir = name
+        self.outdir = self.outdir + name.replace(' ', '_')
         self.phases = phases
         self.sketch = sketch
         
@@ -64,7 +64,7 @@ class Experiment:
 
         internal.start() # routing + agents + ITGRecv on the edge host
 
-        os.chdir(OUTDIR) # ITGSend writes its logs relative to cwd
+        os.chdir(self.outdir) # ITGSend writes its logs relative to cwd
         try:
             external.start() # blocks until all phases are done
         finally:
