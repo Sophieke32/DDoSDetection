@@ -15,6 +15,9 @@ from topologies.many_endpoints_topology import ManyEndpointsTopology
 POLL_INTERVAL = 1.0
 LOG_INTERVAL = 1.0
 
+"""
+Use this Experiment class for now, not the one from experiment.py
+"""
 class Experiment:
     outdir = os.path.abspath("results/")
     phases = [(20, 50), (20, 500), (20, 50)]
