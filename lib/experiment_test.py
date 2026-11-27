@@ -6,64 +6,67 @@ from mininet.log import info
 from mininet.net import Mininet
 from mininet.node import OVSBridge
 from mininet.util import dumpNodeConnections
-from topologies.topology import Topology
 
 from external_behaviour.external_behaviour import ExternalBehaviour
 from internal_behaviour.internal_behaviour import InternalBehaviour
-
-# Everything that needs to change between experiments should be here
-OUTDIR = os.path.abspath("results/expTest")   # name of the experiment, results go here
-PHASES = [(20, 50), (20, 500), (20, 50)]      # (duration s, packets/s), first phase is benign
-SKETCH = []                                   # which sketches/aggregations to run
-POLL_INTERVAL = 1.0                           # edge requests sketch data this often
-LOG_INTERVAL = 1.0                            # every internal host logs metrics this often
+from topologies.many_endpoints_topology import ManyEndpointsTopology
 
 
-def main():
-    setLogLevel("info")
-    os.makedirs(OUTDIR, exist_ok=True)
+POLL_INTERVAL = 1.0
+LOG_INTERVAL = 1.0
 
-    topology = Topology.build_network()         # topology code builds (and starts) the network
-    net = Mininet(
-        topology=topology,
-        switch=OVSBridge,
-        controller=None,
-        build=False
-    )
+class Experiment:
+    ourdir = os.path.abspath("results/expTest") 
+    phases = [(20, 50), (20, 500), (20, 50)]
+    sketch = []
+    poll_interval = 1.0
+    log_interval = 1.0
 
-    internal = InternalBehaviour(
-        net,
-        edge_hosts=topology.edge,
-        core_hosts=topology.core,
-        border_hosts=topology.border,
-        outdir=OUTDIR,
-        sketch=SKETCH,
-        poll_interval=POLL_INTERVAL,
-        log_interval=LOG_INTERVAL)
-    
-    external = ExternalBehaviour(
-        net,
-        topology.benign_external_hosts,
-        topology.malicious_external_hosts,
-        topology.edge[0],
-        PHASES)
+    def __init__(self, phases, sketch, name):
+        self.outdir = name
+        self.phases = phases
+        self.sketch = sketch
+        
+    def run(self):
+        setLogLevel("info")
+        os.makedirs(self.outdir, exist_ok=True)
 
-    info('\n### Host connections ###\n')
-    dumpNodeConnections(net.hosts)
+        topology = ManyEndpointsTopology.build_network()         # topology code builds (and starts) the network
+        net = Mininet(
+            topology=topology,
+            switch=OVSBridge,
+            controller=None,
+            build=False
+        )
 
-    info('\n### Network is built, testing connectivity... ###\n')
-    net.pingAll()
-    CLI(self.net)
+        internal = InternalBehaviour(
+            net,
+            edge_hosts=topology.get_edge_router(),
+            internal_hosts=topology.get_all_checkers().remove(topology.get_edge_router()),
+            outdir=self.outdir,
+            sketch=self.sketch,
+            poll_interval=self.poll_interval,
+            log_interval=self.log_interval)
 
-    internal.start() # routing + agents + ITGRecv on the edge host
+        external = ExternalBehaviour(
+            net,
+            topology.benign_external_hosts,
+            topology.malicious_external_hosts,
+            topology.edge[0],
+            self.phases)
 
-    os.chdir(OUTDIR) # ITGSend writes its logs relative to cwd
-    try:
-        external.start() # blocks until all phases are done
-    finally:
-        internal.stop()
-        net.stop()
+        info('\n### Host connections ###\n')
+        dumpNodeConnections(net.hosts)
 
+        info('\n### Network is built, testing connectivity... ###\n')
+        net.pingAll()
+        CLI(self.net)
 
-if __name__ == "__main__":
-    main()
+        internal.start() # routing + agents + ITGRecv on the edge host
+
+        os.chdir(OUTDIR) # ITGSend writes its logs relative to cwd
+        try:
+            external.start() # blocks until all phases are done
+        finally:
+            internal.stop()
+            net.stop()
